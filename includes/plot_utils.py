@@ -32,3 +32,14 @@ def plot_world_line_xy_on_bev_image(bev_image, world_model, bev_obj, x_lim, n_pt
     world_points = np.insert(np.vstack((x_pts, y_pts)).T, 2, (0), axis=1)
     bev_points = bev_obj.projectWorldPointsToBevPoints(world_points)
     printLinePointsOnImage(bev_image, bev_points, isClosed=False, color=color, thickness=thickness, lineType=cv2.LINE_8)
+
+def plot_gt_lines(gt_mgr, *args, **kwargs):
+    ax = plt.gca()
+    for i, gt_line_gps_coords_m in enumerate(gt_mgr.gt_lines_gps_coords_m):
+        plt.plot(-gt_line_gps_coords_m[:, 1], gt_line_gps_coords_m[:, 0], *args, **kwargs)
+    ax.set_aspect('equal', adjustable='box')
+    ax.tick_params(top='off', bottom='off', left='off', right='off', labelleft='off', labelbottom='off')
+    ### plot white lines on black background (otherwise, gray grid with black lines)
+    ax.grid(False)
+    ax.set_facecolor('black')
+    ax.axis('off')

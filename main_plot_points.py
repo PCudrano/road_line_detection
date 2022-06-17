@@ -16,7 +16,7 @@ from includes.Camera import Camera
 from includes.Bev import Bev
 from includes.utils import resize_image_fit_nocrop
 from includes.plot_utils import plot_points_on_image
-from includes.input_manager import ImageInputManager, GroundTruthManager
+from includes.input_manager import ImageInputManager, GroundTruthManager,  OdometryManager
 from includes.output_manager import Display
 from includes.procedural.feature_extraction import FeatureExtraction
 from includes.procedural.feature_point_selection import FeaturePointSelection
