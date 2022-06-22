@@ -8,7 +8,7 @@ from math import pi, cos, sin, atan2, radians, degrees, ceil, floor
 import warnings
 import time
 
-configs = type('obj', (object,), {'use_cpp' : False});
+configs = type('obj', (object,), {'use_cpp' : False, 'debug': False, 'debug_only': [33]});
 
 
 #from py_configs import configs
@@ -204,6 +204,10 @@ class MovingWindowLineFollower:
     def _py_follow_line(self):
         line_builders = self._init_line_builders()
 
+        if configs.debug and 33 in configs.debug_only:
+            fig33 = plt.figure(33)
+            plt.clf()
+
         save_i = 0
         # check if all completed
         while line_builders.getNotCompleted()[1].size > 0:
@@ -229,6 +233,33 @@ class MovingWindowLineFollower:
                             wip_lb.setCompleted()
                     else:
                         # line following in progress
+                        # line following in progress
+                        if configs.debug and 32 in configs.debug_only:
+                            fig32 = plt.figure(32)
+                            fig32.clf()
+                            ax32 = fig32.add_subplot(121) # fig32.add_subplot(121)
+                            ax32.imshow(self.image)
+                            plt.figure(32);
+                            plt.subplot(121);
+                            plt.plot(wip_lb.points[:, 0], wip_lb.points[:, 1], 'r.', markersize=1)
+                            # plot_rectangle(ax32, wip_lb.window[0, :], wip_lb.window[1, :], edgecolor="g")
+                            plot_window(ax32, wip_lb.window, edgecolor="b")
+                            if wip_lb.line_id is not None:
+                                plt.suptitle("Moving window id={}".format(wip_lb.line_id))
+                            else:
+                                plt.suptitle("Moving window n={}".format(wip_lb_i))
+                        if configs.debug and 33 in configs.debug_only:
+                            fig33 = plt.figure(33)
+                            ax33 = plt.gca() # fig33.add_subplot(111)
+                            plt.imshow(self.image)
+                            # plt.plot(wip_lb.points[:, 0], wip_lb.points[:, 1], 'r.', markersize=1)
+                            # plot_rectangle(ax32, wip_lb.window[0, :], wip_lb.window[1, :], edgecolor="g")
+                            plot_window(ax33, wip_lb.window, edgecolor="b")
+                            if wip_lb.line_id is not None:
+                                plt.suptitle("Moving window id={}".format(wip_lb.line_id))
+                            else:
+                                plt.suptitle("Moving window n={}".format(wip_lb_i))
+
                         # line_mask_window_patch = wip_lb.window.extractImagePatch(self.image) # self._getWindowPatch(self.image, wip_lb.window)
                         # centroid_in_patch = self._getCentroid(line_mask_window_patch, wip_lb)
 
@@ -239,15 +270,45 @@ class MovingWindowLineFollower:
                             # enlarge window and repeat
                             enlarge_delta = self.window_init_enlarge_delta if wip_lb.isJustInit() else self.window_enlarge_delta
                             wip_lb.resizeWindow(enlarge_delta, fixSide=[None, "bottom"])
+
+                            if configs.debug and 32 in configs.debug_only:
+                                # plot_rectangle(ax32, wip_lb.window[0, :], wip_lb.window[1, :], edgecolor="r")
+                                plot_window(ax32, wip_lb.window, edgecolor="y")
+                                print("Resize window")
+                            if configs.debug and 33 in configs.debug_only:
+                                # plot_rectangle(ax32, wip_lb.window[0, :], wip_lb.window[1, :], edgecolor="r")
+                                plot_window(ax33, wip_lb.window, edgecolor="y", linewidth=1)
+                                print("Resize window")
+                                # plt.savefig("./fig33_wlf_step_{:03d}.png".format(save_i)); save_i += 1;
                         else:
                             was_enlarging = wip_lb.resize_count > 0
                             wip_lb.addPoint(centroid)
                             if was_enlarging:
                                 wip_lb.resetWindowSize()
                             forward_pt = wip_lb.moveWindowForward(self.window_move_delta)
+
+                            if configs.debug and 32 in configs.debug_only:
+                                ax32.plot(centroid[0], centroid[1], 'g.')  # selected
+                                ax32.plot([centroid[0], forward_pt[0]],
+                                        [centroid[1], forward_pt[1]], 'g-')  # selected
+                            if configs.debug and 33 in configs.debug_only:
+                                ax33.plot(wip_lb.points[:, 0], wip_lb.points[:, 1], 'r.', markersize=10)#2)
+                                # plt.savefig("./fig33_wlf_step_{:03d}.png".format(save_i)); save_i+=1;
+                            #     ax33.plot(centroid[0], centroid[1], 'g.')  # selected
+                            #     ax33.plot([centroid[0], forward_pt[0]],
+                            #               [centroid[1], forward_pt[1]], 'g-')  # selected
                 except Exception as e:
                     warnings.warn("Exception caught in line-following algorithm:\n{}".format(str(e)))
                     wip_lb.setCompleted()
+
+                if configs.debug and 32 in configs.debug_only:
+                    plt.pause(0.05)
+                    plt.show()
+
+            if configs.debug and 33 in configs.debug_only:
+                plt.pause(0.05)
+                plt.show()
+
         return line_builders
 
     # def _windowInDir(self, starting_point, direction, distance, size=None):
@@ -271,6 +332,19 @@ class MovingWindowLineFollower:
             can_adapt = self._adaptWindowSizeToLine(line_builder)
             if not can_adapt: # error in finding centroid, probably empty window, no need to continue, it's a missing detection
                 return None
+        if configs.debug and 32 in configs.debug_only:
+            fig32 = plt.figure(32)
+            ax32 = fig32.add_subplot(121)
+            plot_window(ax32, line_builder.window, edgecolor="g")
+        if configs.debug and 33 in configs.debug_only:
+            fig33 = plt.figure(33)
+            ax33 = plt.gca() # fig33.add_subplot(111)
+            if can_adapt:
+                # plot_window(ax32, line_builder.window, edgecolor="b")
+                plot_window(ax33, line_builder.window, edgecolor="g", linewidth=1)
+            else:
+                plot_window(ax33, line_builder.window, edgecolor="y", linewidth=1)
+
         line_mask_window_patch = line_builder.window.extractImagePatch(self.image)
         centroid_in_patch_tuple = self._getCentroidInPatch(line_mask_window_patch, line_builder) # no good centroid found / not enough pixels found in window
         if centroid_in_patch_tuple is None:
@@ -300,6 +374,19 @@ class MovingWindowLineFollower:
         selected_centroid_in_patch_i, initial_centroids_in_patch, initial_stats, initial_labels = selected_centroid_in_patch_tuple
         selected_centroid_in_patch = initial_centroids_in_patch[selected_centroid_in_patch_i, :]
         selected_centroid_in_image = self._transformPointsFromWindowPatchToImage(selected_centroid_in_patch, line_builder.window, round_res=False)
+        if configs.debug and 10 in configs.debug_only:
+            # TODO add plots of rotated image
+            plt.figure(10)
+            plt.clf()
+            plt.subplot(351)
+            plt.imshow(initial_line_mask_window_patch)
+            plt.plot(selected_centroid_in_patch[0], selected_centroid_in_patch[1], '.g')
+            if original_window_clone.mask is not None:
+                plt.subplot(352)
+                plt.imshow(original_window_clone.mask)
+            ax = plt.subplot(353)
+            plt.imshow(image_straight)
+            plot_window(ax, window_straight, edgecolor='b')
 
         # straight window and accordingly rotated image
         # if original_window_clone.dir >= pi/2:
@@ -392,6 +479,24 @@ class MovingWindowLineFollower:
             selected_centroid_in_analysis = centroids[selected_centroid_in_analysis_i, :]
             selected_stats_in_analysis = stats[selected_centroid_in_analysis_i, :]
 
+            if configs.debug and 10 in configs.debug_only:
+                plt.figure(10)
+                # plt.subplot(3,5,6); plt.cla(); plt.imshow(roi_image)
+                # plt.subplot(3,5,7); plt.cla(); plt.imshow(line_mask_window_patch)
+                # plt.plot(selected_centroid_in_new_patch[0], selected_centroid_in_new_patch[1], '.g')
+                # plt.subplot(3,5,8); plt.cla(); plt.imshow(window_straight.mask)
+                # plt.subplot(3,5,9); plt.cla(); plt.imshow(line_mask_window_patch_rot)
+                ax = plt.subplot(3,5,10)
+                ax.cla()
+                ax.imshow(line_mask_window_patch)
+                ax.plot(selected_centroid_in_new_window[0], selected_centroid_in_new_window[1], '.r')
+                ax.plot(selected_centroid_in_analysis[0], selected_centroid_in_analysis[1], '.g')
+                plot_rectangle(ax,
+                               [selected_stats_in_analysis[cv2.CC_STAT_LEFT]-1, selected_stats_in_analysis[cv2.CC_STAT_TOP]-1],
+                               [selected_stats_in_analysis[cv2.CC_STAT_LEFT]-1 + selected_stats_in_analysis[cv2.CC_STAT_WIDTH] + 1,
+                                selected_stats_in_analysis[cv2.CC_STAT_TOP]-1 + selected_stats_in_analysis[cv2.CC_STAT_HEIGHT] + 1],
+                               edgecolor="b")
+
             # build bounding box for originally selected conn comp, in window coords
             left_bounding_box = selected_stats_in_analysis[cv2.CC_STAT_LEFT]
             right_bounding_box = left_bounding_box + selected_stats_in_analysis[cv2.CC_STAT_WIDTH]
@@ -418,6 +523,14 @@ class MovingWindowLineFollower:
             # done on a side if window was not enlarged on that side (either reduced of the right amount or no operation done)
             done_left = delta_left <= 0 # no enlargment performed
             done_right = delta_right <= 0 # no enlargment performed
+
+            if configs.debug and 10 in configs.debug_only:
+                plt.figure(10)
+                # roi_image = self.image[int((window_straight.center[1] - line_builder.window.mask.shape[0] / 2.0)):int((line_builder.window.center[1] + line_builder.window.mask.shape[0] / 2.0)),int(line_builder.window.center[0] - line_builder.window.mask.shape[1] / 2.0):int((line_builder.window.center[0] + line_builder.window.mask.shape[1] / 2.0))]
+                line_mask_window_patch = window_straight.extractImagePatch(image_straight)
+                # plt.subplot(3,5,11); plt.cla(); plt.imshow(roi_image)
+                plt.subplot(3,5,12); plt.cla(); plt.imshow(line_mask_window_patch)
+                # plt.subplot(3,5,13); plt.cla(); plt.imshow(window_straight.mask)
 
         # finally, once size is adapted, resize actual window
         adapted_window_center = image_straight_rotmat[0:2,0:2].T.dot(window_straight.center - image_straight_rotmat[:,2]) # rotate back and move origin from x',y' to original x,y
@@ -459,6 +572,12 @@ class MovingWindowLineFollower:
         # assert: CENTROID_CLOSEST_WITH_MIN_AREA => line_builder.line_side well defined
         assert not (self.centroid_type == MovingWindowLineFollower.CENTROID_CLOSEST_WITH_MIN_AREA) or \
                 line_builder.line_side in [LineBuilder.LINE_SIDE_LEFT, LineBuilder.LINE_SIDE_RIGHT]
+
+        if configs.debug and 32 in configs.debug_only:
+            fig = plt.figure(32)
+            ax = fig.add_subplot(122)
+            ax.cla()
+            ax.imshow(window_patch)
 
         analysis = self._analyzePatch(window_patch)
         if analysis is None:
@@ -513,6 +632,17 @@ class MovingWindowLineFollower:
             elif line_builder.line_side == LineBuilder.LINE_SIDE_RIGHT:
                 closest_centroid_i = np.argmin(dist_centroids_from_dir_line)
             ret_centroid_i = filtered_centroids_i[closest_centroid_i]
+
+            if configs.debug and 32 in configs.debug_only:
+                for component_i in range(0,num_labels):
+                    if component_i in filtered_centroids_i:
+                        ax.plot(centroids[component_i,0], centroids[component_i,1], 'g.') # candidates
+                    else:
+                        ax.plot(centroids[component_i, 0], centroids[component_i, 1], 'r.')  # candidates
+                    plot_rectangle(ax,
+                                   [stats[component_i,cv2.CC_STAT_LEFT]-1, stats[component_i,cv2.CC_STAT_TOP]-1],
+                                   [stats[component_i, cv2.CC_STAT_LEFT]-1+stats[component_i, cv2.CC_STAT_WIDTH]+1, stats[component_i, cv2.CC_STAT_TOP]-1+stats[component_i, cv2.CC_STAT_HEIGHT]+1],
+                                   edgecolor="b")
 
         ret_centroid = centroids[ret_centroid_i, :]
 
@@ -605,6 +735,33 @@ class MovingWindowLineFollower:
         lb.addPoint(line_following_init_point)
         # I follow line with lb and move along also wip_line_builder, until wip_line_builder doesn't get a valid centroid
 
+        if configs.debug and 32 in configs.debug_only:
+            fig32 = plt.figure(32)
+            ax32 = fig32.add_subplot(121)
+            ax32.imshow(self.image)
+            # plot_rectangle(ax32, wip_line_builder.window[0, :], wip_line_builder.window[1, :], edgecolor="g")
+            plot_window(ax32, wip_line_builder.window, edgecolor="b")
+            n_pts = 100
+            line_y_pts = np.linspace(0, self.image.shape[0], n_pts)
+            line_x_pts = previous_line.computeXGivenY(line_y_pts)
+            if not (line_x_pts.size == 0 or np.isnan(line_x_pts).any()):
+                # computeXGivenY can return NaN with arc_length_parametrization model or not return any point if they would be extrapolated
+                ax32.plot(line_x_pts, line_y_pts, ':r')
+            ax32.plot(line_following_init_point[0], line_following_init_point[1], 'or')
+        if configs.debug and 33 in configs.debug_only:
+            fig33 = plt.figure(33)
+            ax33 = plt.gca() # fig33.add_subplot(111)
+            ax33.imshow(self.image)
+            # plot_rectangle(ax33, wip_line_builder.window[0, :], wip_line_builder.window[1, :], edgecolor="g")
+            plot_window(ax33, wip_line_builder.window, edgecolor="g", linewidth=1)
+            n_pts = 100
+            line_y_pts = np.linspace(0, self.image.shape[0], n_pts)
+            line_x_pts = previous_line.computeXGivenY(line_y_pts)
+            if not (line_x_pts.size == 0 or np.isnan(line_x_pts).any()):
+                # computeXGivenY can return NaN with arc_length_parametrization model or not return any point if they would be extrapolated
+                ax33.plot(line_x_pts, line_y_pts, ':r')
+            ax33.plot(line_following_init_point[0], line_following_init_point[1], 'or')
+
         found_centroid = False
         while not found_centroid and not lb.isCompleted(): # wip_line_builder.isCompleted():
             # center wip_line_builder on current point on line
@@ -626,10 +783,29 @@ class MovingWindowLineFollower:
                 line_point = np.array([line_corresponding_x, forward_pt_y])
                 lb.addPoint(line_point)
 
+                if configs.debug and 32 in configs.debug_only:
+                    # plot_rectangle(ax32, wip_lb.window[0, :], wip_lb.window[1, :], edgecolor="r")
+                    plot_window(ax32, wip_lb.window, edgecolor="y")
+                    print("Resize window")
+                if configs.debug and 33 in configs.debug_only:
+                    # plot_rectangle(ax32, wip_lb.window[0, :], wip_lb.window[1, :], edgecolor="r")
+                    plot_window(ax33, wip_lb.window, edgecolor="y", linewidth=1)
+                    print("Resize window")
+                    # plt.savefig("./fig33_wlf_step_{:03d}.png".format(save_i)); save_i += 1;
             else:
                 # centroid found: stop recovery and return
                 found_centroid = True
                 # center wip_line_builder on current point on line
                 wip_line_builder.centerWindowOnPoint(lb.getWindowCenterPoint(), window_dir=lb.forwardDir)
+
+                if configs.debug and 32 in configs.debug_only:
+                    lb_center_pt = lb.getWindowCenterPoint()
+                    # plot_rectangle(ax32, lb.window[0, :], lb.window[1, :], edgecolor="y")
+                    ax32.plot(lb_center_pt[0], lb_center_pt[1], 'yo')  # selected
+                    ax32.plot(centroid[0], centroid[1], 'go')  # selected
+
+            if configs.debug and 32 in configs.debug_only:
+                plt.pause(0.05)
+                plt.show()
 
         return found_centroid
