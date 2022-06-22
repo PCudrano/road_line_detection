@@ -142,8 +142,25 @@ while(input_mgr.has_frames()):
             right_y_subsampled = smoothed_lines_pts_w[1][:, 1] \
                 if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
 
+            # Save points in csv
+            if export_csv:
+                csv_out_mgr.write({
+                    'timestamp': timestamp,
+                    'frame_i': frame_i,
+                    'enu_pose': enu_pose.tolist(),
+                    'enu_ref': enu_ref.tolist(),
+                    'left_x': left_x.tolist() if left_x is not None else '[]',
+                    'left_y': left_y.tolist() if left_y is not None else '[]',
+                    'right_x': right_x.tolist() if right_x is not None else '[]',
+                    'right_y': right_y.tolist() if right_y is not None else '[]',
+                    'left_x_subsampled': left_x_subsampled.tolist() if left_x_subsampled is not None else '[]',
+                    'left_y_subsampled': left_y_subsampled.tolist() if left_y_subsampled is not None else '[]',
+                    'right_x_subsampled': right_x_subsampled.tolist() if right_x_subsampled is not None else '[]',
+                    'right_y_subsampled': right_y_subsampled.tolist() if right_y_subsampled is not None else '[]'
+                })
+
             ## Compose output images (overlay points and compose mosaics of front+BEV)
-            if configs.verbose:
+            if configs.verbose or save_video_out:
                 front_points = frame.copy()
                 bev_points = bev.copy()
                 for pts_w in lines_pts_w:
@@ -164,49 +181,34 @@ while(input_mgr.has_frames()):
                 ))
                 collage_resized = resize_image_fit_nocrop(collage, dsize=configs.out_image_size)
 
-                front_smoothed_points = frame.copy()
-                bev_smoothed_points = bev.copy()
-                for pts_w in smoothed_lines_pts_w:
-                    if pts_w is not None:
-                        pts_bev = bev_obj.projectWorldPointsToBevPoints(pts_w)
-                        pts_front = bev_obj.projectBevPointsToImagePoints(pts_bev)
-                        plot_points_on_image(front_smoothed_points, pts_front, color=(254, 198, 47), thickness=5)
-                        plot_points_on_image(bev_smoothed_points, pts_bev, color=(254, 198, 47), thickness=5)
-                bev_smoothed_points_resized = cv2.resize(
-                    bev_smoothed_points, dsize=None,
-                    fx=float(front_points.shape[0]) / bev_smoothed_points.shape[0],
-                    fy=float(front_points.shape[0]) / bev_smoothed_points.shape[0])
-                collage_smoothed = np.hstack((
-                    front_smoothed_points,
-                    bev_smoothed_points_resized
-                ))
-                collage_smoothed_resized = resize_image_fit_nocrop(collage_smoothed, dsize=configs.out_image_size)
+                # front_smoothed_points = frame.copy()
+                # bev_smoothed_points = bev.copy()
+                # for pts_w in smoothed_lines_pts_w:
+                #     if pts_w is not None:
+                #         pts_bev = bev_obj.projectWorldPointsToBevPoints(pts_w)
+                #         pts_front = bev_obj.projectBevPointsToImagePoints(pts_bev)
+                #         plot_points_on_image(front_smoothed_points, pts_front, color=(254, 198, 47), thickness=5)
+                #         plot_points_on_image(bev_smoothed_points, pts_bev, color=(254, 198, 47), thickness=5)
+                # bev_smoothed_points_resized = cv2.resize(
+                #     bev_smoothed_points, dsize=None,
+                #     fx=float(front_points.shape[0]) / bev_smoothed_points.shape[0],
+                #     fy=float(front_points.shape[0]) / bev_smoothed_points.shape[0])
+                # collage_smoothed = np.hstack((
+                #     front_smoothed_points,
+                #     bev_smoothed_points_resized
+                # ))
+                # collage_smoothed_resized = resize_image_fit_nocrop(collage_smoothed, dsize=configs.out_image_size)
 
                 # Show output
-                Display._show_image(collage_resized, window_name="Output",
-                                    window_size=configs.out_image_size, wait_sec=5)
-                Display._show_image(collage_smoothed_resized, window_name="Output smoothed",
-                                    window_size=configs.out_image_size, wait_sec=5)
-            # Save points in csv
-            if export_csv:
-                csv_out_mgr.write({
-                    'timestamp': timestamp,
-                    'frame_i': frame_i,
-                    'enu_pose': enu_pose.tolist(),
-                    'enu_ref': enu_ref.tolist(),
-                    'left_x': left_x.tolist() if left_x is not None else '[]',
-                    'left_y': left_y.tolist() if left_y is not None else '[]',
-                    'right_x': right_x.tolist() if right_x is not None else '[]',
-                    'right_y': right_y.tolist() if right_y is not None else '[]',
-                    'left_x_subsampled': left_x_subsampled.tolist() if left_x_subsampled is not None else '[]',
-                    'left_y_subsampled': left_y_subsampled.tolist() if left_y_subsampled is not None else '[]',
-                    'right_x_subsampled': right_x_subsampled.tolist() if right_x_subsampled is not None else '[]',
-                    'right_y_subsampled': right_y_subsampled.tolist() if right_y_subsampled is not None else '[]'
-                })
+                if configs.verbose:
+                    Display._show_image(collage_resized, window_name="Output",
+                                        window_size=configs.out_image_size, wait_sec=5)
+                    # Display._show_image(collage_smoothed_resized, window_name="Output smoothed",
+                    #                     window_size=configs.out_image_size, wait_sec=5)
 
-            # Save output
-            if save_video_out:
-                out_mgr.write('collage_points', collage_resized)
+                # Save output
+                if save_video_out:
+                    out_mgr.write('collage_points', collage_resized)
         else:
             raise Exception("Missed frame")
     except:

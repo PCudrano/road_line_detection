@@ -5,6 +5,7 @@
 import numpy as np
 import cv2
 from includes.utils import printLinePointsOnImage
+from matplotlib import pyplot as plt
 
 def plot_points_on_image(image, points, color=(0, 153, 255), thickness=5):
     # return printLinePointsOnImage(image, points, isClosed=False, color=color, thickness=thickness, lineType=cv2.LINE_8)

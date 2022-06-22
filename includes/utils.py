@@ -559,3 +559,9 @@ def vehicle2enu(points_camera_w, vehicle_pose, vehicle_cm, enu_ref):
     # convert to enu
     points_enu = vehicle_pose[0:2] + rot2d(vehicle_pose[2]).dot(points_vehicle[:, 0:2].T).T
     return points_enu
+
+def vehicle2image(points_camera, bev_obj):
+    points_w = np.hstack((points_camera, np.zeros((points_camera.shape[0], 1))))
+    points_bev = bev_obj.projectWorldPointsToBevPoints(points_w)
+    points_im = bev_obj.projectBevPointsToImagePoints(points_bev)
+    return points_im

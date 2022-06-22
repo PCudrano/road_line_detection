@@ -35,7 +35,7 @@ input_mgr = ImageInputManager(
         from_frame=configs.read_from_frame,
         to_frame=configs.read_to_frame,
         step_frame=configs.read_frame_step)
-gt_mgr = GroundTruthManager(configs.gt_data_path, configs.bag, input_mgr.get_fps())
+# gt_mgr = GroundTruthManager(configs.gt_data_path, configs.bag, input_mgr.get_fps())
 vehicle_cm = np.array([configs.camera_data['center_of_mass']['x'],
                        configs.camera_data['center_of_mass']['y'],
                        configs.camera_data['center_of_mass']['z']])
@@ -82,25 +82,25 @@ while(input_mgr.has_frames()):
                 else:
                     smoothed_lines_pts_w.append(np.array([]).reshape(-1,3))
 
-            enu_pose = gt_mgr.get_pose(input_mgr.get_prev_timestamp())
+            #enu_pose = gt_mgr.get_pose(input_mgr.get_prev_timestamp())
 
             # Define variables to store
-            timestamp = input_mgr.get_prev_timestamp()
-            frame_i = input_mgr.frame_i - 1
-            enu_pose = np.hstack(list([v.tolist() for v in gt_mgr.get_pose(input_mgr.get_prev_timestamp())]))
-            enu_ref = np.array([v.tolist() for v in gt_mgr.get_enu_reference()])
-            left_x = lines_pts_w[0][:, 0] if lines_pts_w is not None and lines_pts_w[0] is not None else None
-            left_y = lines_pts_w[0][:, 1] if lines_pts_w is not None and lines_pts_w[0] is not None else None
-            right_x = lines_pts_w[1][:, 0] if lines_pts_w is not None and lines_pts_w[1] is not None else None
-            right_y = lines_pts_w[1][:, 1] if lines_pts_w is not None and lines_pts_w[1] is not None else None
-            left_x_subsampled = smoothed_lines_pts_w[0][:, 0] \
-                if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[0] is not None else None
-            left_y_subsampled = smoothed_lines_pts_w[0][:, 1] \
-                if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[0] is not None else None
-            right_x_subsampled = smoothed_lines_pts_w[1][:, 0] \
-                if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
-            right_y_subsampled = smoothed_lines_pts_w[1][:, 1] \
-                if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
+            # timestamp = input_mgr.get_prev_timestamp()
+            # frame_i = input_mgr.frame_i - 1
+            # enu_pose = np.hstack(list([v.tolist() for v in gt_mgr.get_pose(input_mgr.get_prev_timestamp())]))
+            # enu_ref = np.array([v.tolist() for v in gt_mgr.get_enu_reference()])
+            # left_x = lines_pts_w[0][:, 0] if lines_pts_w is not None and lines_pts_w[0] is not None else None
+            # left_y = lines_pts_w[0][:, 1] if lines_pts_w is not None and lines_pts_w[0] is not None else None
+            # right_x = lines_pts_w[1][:, 0] if lines_pts_w is not None and lines_pts_w[1] is not None else None
+            # right_y = lines_pts_w[1][:, 1] if lines_pts_w is not None and lines_pts_w[1] is not None else None
+            # left_x_subsampled = smoothed_lines_pts_w[0][:, 0] \
+            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[0] is not None else None
+            # left_y_subsampled = smoothed_lines_pts_w[0][:, 1] \
+            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[0] is not None else None
+            # right_x_subsampled = smoothed_lines_pts_w[1][:, 0] \
+            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
+            # right_y_subsampled = smoothed_lines_pts_w[1][:, 1] \
+            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
 
             ## Compose output images (overlay points and compose mosaics of front+BEV)
             if configs.verbose:
@@ -142,10 +142,17 @@ while(input_mgr.has_frames()):
                 ))
                 collage_smoothed_resized = resize_image_fit_nocrop(collage_smoothed, dsize=configs.out_image_size)
 
+                bev_features = resize_image_fit_nocrop(np.hstack((bev_feature_predictions, bev_feature_mask)), dsize=configs.out_image_size)
+
+
                 # Show output
                 Display._show_image(collage_resized, window_name="Output",
                                     window_size=configs.out_image_size, wait_sec=5)
                 Display._show_image(collage_smoothed_resized, window_name="Output smoothed",
+                                    window_size=configs.out_image_size, wait_sec=5)
+                Display._show_image(front_feature_predictions, window_name="Front feature pred",
+                                    window_size=configs.out_image_size, wait_sec=5)
+                Display._show_image(bev_features, window_name="Bev feature",
                                     window_size=configs.out_image_size, wait_sec=5)
 
         else:
