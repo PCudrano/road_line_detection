@@ -21,7 +21,7 @@ class _SmoothingFactors(object):
         self.gt_centerline_smoothing_mae_allowed = centerline_enu_mae if centerline_enu_mae is not None else self._gt_centerline_smoothing_mae_allowed_default
         self.odom_smoothing_mae_allowed = odom_s if odom_s is not None else self._odom_smoothing_mae_allowed_default
 
-def load_gt(gt_folder, bag, cap_fps, smoothing_factors=None):
+def load_gt(gt_folder, bag, cap_fps, smoothing_factors=None, traj_only=False):
     if smoothing_factors is None:
         smoothing_factors = _SmoothingFactors()
     # gt_lines_csv_folder = configs.in_data_path
@@ -31,8 +31,11 @@ def load_gt(gt_folder, bag, cap_fps, smoothing_factors=None):
     # else:
     #     gt_lines_csv_filenames = np.array([gt_lines_csv_folder + 'bordi_int.csv', gt_lines_csv_folder + 'bordi_ext.csv'])
 
-    gt_lines_gps_coords_m, gt_coords_m_ref, gt_lines_gps_coords_m_interp_fcn, gt_lines_abs_orientation_interp_fcn = load_track_gt(gt_folder, bag, smoothing_factors) # TODO
-    gt_traj_timestamps, gt_traj_gps_coords, gt_traj_gps_coords_m, gt_traj_gps_coords_m_interp_fcn, gt_traj_heading_interp_fcn, gt_traj_lateral_offset_interp_fcn, gps_data_abs_orientation_interp_fcn = load_trajectory_gt(gt_folder, bag, cap_fps, gt_coords_m_ref, smoothing_factors) # TODO
+    if not traj_only:
+        gt_lines_gps_coords_m, gt_coords_m_ref, gt_lines_gps_coords_m_interp_fcn, gt_lines_abs_orientation_interp_fcn = load_track_gt(gt_folder, bag, smoothing_factors) # TODO
+    else:
+        gt_lines_gps_coords_m, gt_coords_m_ref, gt_lines_gps_coords_m_interp_fcn, gt_lines_abs_orientation_interp_fcn = None, None, None, None
+    gt_traj_timestamps, gt_traj_gps_coords, gt_traj_gps_coords_m, gt_traj_gps_coords_m_interp_fcn, gt_traj_heading_interp_fcn, gt_traj_lateral_offset_interp_fcn, gps_data_abs_orientation_interp_fcn, gt_coords_m_ref = load_trajectory_gt(gt_folder, bag, cap_fps, gt_coords_m_ref, smoothing_factors, traj_only=traj_only) # TODO
 
     return gt_lines_gps_coords_m, gt_coords_m_ref, gt_lines_gps_coords_m_interp_fcn, gt_lines_abs_orientation_interp_fcn, gt_traj_timestamps, gt_traj_gps_coords, gt_traj_gps_coords_m, gt_traj_gps_coords_m_interp_fcn, gps_data_abs_orientation_interp_fcn, gt_traj_heading_interp_fcn, gt_traj_lateral_offset_interp_fcn
 
@@ -166,7 +169,7 @@ def load_track_gt(gt_folder, bag, smoothing_factors):
 
     return gt_gps_coords_m, gt_gps_coords_m_ref, gt_gps_coords_m_interp_fcn, gt_gps_coords_abs_orientation_interp_fcn
 
-def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_factors):
+def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_factors, traj_only=False):
     gt_bag_file_name = 'BAG' + str(bag)
     gt_folder = gt_folder + 'trajectory/'
 
@@ -187,8 +190,12 @@ def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_f
                 # print("{:030d}".format(timestamp))
                 gps_lat = row[0]
                 gps_long = row[1]
-                heading = row[4]
-                lateral_offset = row[5]
+                if not traj_only:
+                    heading = row[4]
+                    lateral_offset = row[5]
+                else:
+                    heading = 0
+                    lateral_offset = 0
             else:
                 timestamp_part1 = str(int(float(row[0])))
                 timestamp_part2 = str(int(float(row[1])))
@@ -200,8 +207,12 @@ def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_f
                 # print("{:030d}".format(timestamp))
                 gps_lat = row[2]
                 gps_long = row[3]
-                heading = row[4]
-                lateral_offset = row[5]
+                if not traj_only:
+                    heading = row[4]
+                    lateral_offset = row[5]
+                else:
+                    heading = 0
+                    lateral_offset = 0
             row = [gps_lat, gps_long, timestamp_part1, timestamp_part2, heading, lateral_offset]
             gps_data.append(row)
             gps_data_timestamps.append(timestamp)
@@ -213,6 +224,19 @@ def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_f
     gps_data_duplicate_timestamps_i = np.where(np.diff(gps_data_timestamps) == 0)[0] + 1
     gps_data_timestamps = np.delete(gps_data_timestamps, gps_data_duplicate_timestamps_i)
     gps_data = np.delete(gps_data, gps_data_duplicate_timestamps_i, axis=0)
+
+    # remove points in the past (issue for bag 12-13)
+    gps_data_past_timestamps_i = np.where(gps_data_timestamps < gps_data_timestamps[0])[0]
+    gps_data_timestamps = np.delete(gps_data_timestamps, gps_data_past_timestamps_i)
+    gps_data = np.delete(gps_data, gps_data_past_timestamps_i, axis=0)
+
+    # remove points out of our gps zone
+    if bag >= 12:
+        gps_data_far_away_i = np.where(np.bitwise_or(
+            np.bitwise_or(gps_data[:, 0] < 44, gps_data[:, 0] > 46),
+            np.bitwise_or(gps_data[:, 1] < 8, gps_data[:, 1] > 10)))[0]
+        gps_data_timestamps = np.delete(gps_data_timestamps, gps_data_far_away_i)
+        gps_data = np.delete(gps_data, gps_data_far_away_i, axis=0)
 
     # interpolate gt
     # clean data out of range
@@ -257,6 +281,9 @@ def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_f
     # plt.plot(gps_data_t_interval[-1,1], gps_data_t_interval[-1,0], '^g', markersize=3)
 
     # GSP trajectory to ENU ref frame (x,y in meters)
+    if traj_only and gt_gps_coords_m_ref is None:
+        gt_gps_coords_m_ref = np.median(gps_data[:, 0:2], axis=0)
+
     gps_data_latlong_m = np.array([list(geo.geodetic_to_enu(coord[0], coord[1], 0, gt_gps_coords_m_ref[0], gt_gps_coords_m_ref[1], 0))[0:2] for coord in gps_data[:,0:2]])
     # interpolate trajectory in ENU ref frame
     x = gps_data_latlong_m[:, 0]
@@ -281,7 +308,7 @@ def load_trajectory_gt(gt_folder, bag, cap_fps, gt_gps_coords_m_ref, smoothing_f
     gps_data_latlong_m_deriv_interp_fcn = lambda timestamps: np.array(interpolate.splev((np.asarray(timestamps)-u0)/1e11, gps_data_latlong_m_interp, der=1)).T # evaluate spline in timestamps
     gps_data_abs_orientation_interp_fcn = lambda timestamps: np.arctan2(*gps_data_latlong_m_deriv_interp_fcn((np.asarray(timestamps)).reshape((-1,1))[:,0])[:,::-1].T)
 
-    return gps_data_timestamps, gps_data[:,0:2], gps_data_latlong_m[:,0:2], gps_data_latlong_m_interp_fcn, gps_data_heading_interp_fcn, gps_data_lateral_offset_interp_fcn, gps_data_abs_orientation_interp_fcn
+    return gps_data_timestamps, gps_data[:,0:2], gps_data_latlong_m[:,0:2], gps_data_latlong_m_interp_fcn, gps_data_heading_interp_fcn, gps_data_lateral_offset_interp_fcn, gps_data_abs_orientation_interp_fcn, gt_gps_coords_m_ref
 
 def load_centerline_gt(gt_folder, bag, gt_gps_coords_m_ref, smoothing_factors):
     gt_folder = gt_folder + 'centerline/'

@@ -241,14 +241,16 @@ class OdometryManager:
 # odometry_displacement = np.array([odometry_displacement_x, odometry_displacement_y, odometry_displacement_orient])
 
 class GroundTruthManager():
-    def __init__(self, gt_data_path, bag_n, input_fps, smoothing_factors=None):
+    def __init__(self, gt_data_path, bag_n, input_fps, smoothing_factors=None, traj_only=False):
         self.smoothing_factors = smoothing_factors if smoothing_factors is not None else SmoothingFactors()
+        self.traj_only = traj_only
         self.gt_lines_gps_coords_m, self.gt_coords_m_ref, \
                 self.gt_lines_gps_coords_m_interp_fcns, self.gt_lines_abs_orientation_interp_fcns, \
                 self.gt_traj_timestamps, self.gt_traj_gps_coords, \
                 self.gt_traj_gps_coords_m, self.gt_traj_gps_coords_m_interp_fcn, \
                 self.gt_traj_abs_orientation_interp_fcn, self.gt_traj_heading_interp_fcn, \
-                self.gt_traj_lateral_offset_interp_fcn = load_gt(gt_data_path, bag_n, input_fps, self.smoothing_factors)
+                self.gt_traj_lateral_offset_interp_fcn = load_gt(gt_data_path, bag_n, input_fps, self.smoothing_factors,
+                                                                 traj_only=self.traj_only)
 
     def get_enu_reference(self):
         return self.gt_coords_m_ref

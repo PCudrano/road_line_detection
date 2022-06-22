@@ -57,7 +57,7 @@ input_mgr = ImageInputManager(
         from_frame=configs.read_from_frame,
         to_frame=configs.read_to_frame,
         step_frame=configs.read_frame_step)
-gt_mgr = GroundTruthManager(configs.gt_data_path, configs.bag, input_mgr.get_fps())
+gt_mgr = GroundTruthManager(configs.gt_data_path, configs.bag, input_mgr.get_fps(), traj_only=True)
 vehicle_cm = np.array([configs.camera_data['center_of_mass']['x'],
                        configs.camera_data['center_of_mass']['y'],
                        configs.camera_data['center_of_mass']['z']])
