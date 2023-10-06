@@ -82,26 +82,6 @@ while(input_mgr.has_frames()):
                 else:
                     smoothed_lines_pts_w.append(np.array([]).reshape(-1,3))
 
-            #enu_pose = gt_mgr.get_pose(input_mgr.get_prev_timestamp())
-
-            # Define variables to store
-            # timestamp = input_mgr.get_prev_timestamp()
-            # frame_i = input_mgr.frame_i - 1
-            # enu_pose = np.hstack(list([v.tolist() for v in gt_mgr.get_pose(input_mgr.get_prev_timestamp())]))
-            # enu_ref = np.array([v.tolist() for v in gt_mgr.get_enu_reference()])
-            # left_x = lines_pts_w[0][:, 0] if lines_pts_w is not None and lines_pts_w[0] is not None else None
-            # left_y = lines_pts_w[0][:, 1] if lines_pts_w is not None and lines_pts_w[0] is not None else None
-            # right_x = lines_pts_w[1][:, 0] if lines_pts_w is not None and lines_pts_w[1] is not None else None
-            # right_y = lines_pts_w[1][:, 1] if lines_pts_w is not None and lines_pts_w[1] is not None else None
-            # left_x_subsampled = smoothed_lines_pts_w[0][:, 0] \
-            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[0] is not None else None
-            # left_y_subsampled = smoothed_lines_pts_w[0][:, 1] \
-            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[0] is not None else None
-            # right_x_subsampled = smoothed_lines_pts_w[1][:, 0] \
-            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
-            # right_y_subsampled = smoothed_lines_pts_w[1][:, 1] \
-            #     if smoothed_lines_pts_w is not None and smoothed_lines_pts_w[1] is not None else None
-
             ## Compose output images (overlay points and compose mosaics of front+BEV)
             if configs.verbose:
                 front_points = frame.copy()

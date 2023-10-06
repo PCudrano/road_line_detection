@@ -210,11 +210,11 @@ class InputManagerBuilder(object):
                                      step_frame=configs.read_frame_step)
 
 class OdometryManager:
-    def __init__(self, odom_data_path, bag_n, smoothing_factors):
+    def __init__(self, odom_data_path, rec, smoothing_factors):
         self.smoothing_factors = smoothing_factors if smoothing_factors is not None else SmoothingFactors()
         self.odom_timestamps, \
                 self.odom_data_displacements, \
-                self.odom_data_displacements_pose_interp_fcn = load_odom(odom_data_path, bag_n, smoothing_factors)
+                self.odom_data_displacements_pose_interp_fcn = load_odom(odom_data_path, rec, smoothing_factors)
 
     def get_displacement(self, cur_timestamp, prev_timestamp):
         odometry_displacement_x, odometry_displacement_y, odometry_displacement_orient = self.odom_data_displacements_pose_interp_fcn(cur_timestamp, prev_timestamp)
@@ -242,7 +242,7 @@ class OdometryManager:
 # odometry_displacement = np.array([odometry_displacement_x, odometry_displacement_y, odometry_displacement_orient])
 
 class GroundTruthManager():
-    def __init__(self, gt_data_path, bag_n, input_fps, smoothing_factors=None, traj_only=False):
+    def __init__(self, gt_data_path, rec, input_fps, smoothing_factors=None, traj_only=False):
         self.smoothing_factors = smoothing_factors if smoothing_factors is not None else SmoothingFactors()
         self.traj_only = traj_only
         self.gt_lines_gps_coords_m, self.gt_coords_m_ref, \
@@ -250,8 +250,11 @@ class GroundTruthManager():
                 self.gt_traj_timestamps, self.gt_traj_gps_coords, \
                 self.gt_traj_gps_coords_m, self.gt_traj_gps_coords_m_interp_fcn, \
                 self.gt_traj_abs_orientation_interp_fcn, self.gt_traj_heading_interp_fcn, \
-                self.gt_traj_lateral_offset_interp_fcn = load_gt(gt_data_path, bag_n, input_fps, self.smoothing_factors,
+                self.gt_traj_lateral_offset_interp_fcn = load_gt(gt_data_path, rec, input_fps, self.smoothing_factors,
                                                                  traj_only=self.traj_only)
+
+    def is_timestamp_valid(self, timestamp):
+        return timestamp >= self.gt_traj_timestamps[0] and timestamp <= self.gt_traj_timestamps[-1]
 
     def get_enu_reference(self):
         return self.gt_coords_m_ref

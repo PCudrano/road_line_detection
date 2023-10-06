@@ -33,8 +33,8 @@ from includes.procedural.feature_point_selection import FeaturePointSelection
 plot_on_img = False
 plot_final = True
 
-export_path = get_project_root() + 'outputs/csv/'
-csvFilePath = export_path + '/12_first_run_points.csv'
+export_path = get_project_root() + 'outputs/'
+csvFilePath = export_path + '/'+configs.rec['id']+'_points.csv'
 # Notice: bag number and paths must match what specified in configs.py
 
 ################################################################################
@@ -51,22 +51,10 @@ input_mgr = ImageInputManager(
         from_frame=configs.read_from_frame,
         to_frame=configs.read_to_frame,
         step_frame=configs.read_frame_step)
-gt_mgr = GroundTruthManager(configs.gt_data_path, configs.bag, input_mgr.get_fps(), traj_only=True)
+gt_mgr = GroundTruthManager(configs.gt_data_path, configs.rec, input_mgr.get_fps(), traj_only=True)
 vehicle_cm = np.array([configs.camera_data['center_of_mass']['x'],
                        configs.camera_data['center_of_mass']['y'],
                        configs.camera_data['center_of_mass']['z']])
-
-## Setup output
-# Output video setup
-# out_mgr = VideoSaver(
-#     OutputSpecsCollection({
-#         'collage_points': {"size": configs.out_image_size, "name": "collage_points"},
-#     }),
-#     fps=input_mgr.get_fps(),
-#     split_after_frames=video_out_max_n_frames,
-#     output_path=export_path,
-#     input_id=input_mgr.get_input_id(),
-#     enabled=save_video_out)
 
 ## Read csv
 
