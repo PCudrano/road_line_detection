@@ -12,7 +12,8 @@ Process data stream frame-by-frame and visualize all intermediate results: image
 
 `python main_plot_frame_by_frame.py`
 
-![Frame-by-frame processing](https://github.com/PCudrano/road_line_detection/assets/20643285/02577ef5-05e1-4b1b-af7e-dec5bd9fa808)
+![Frame-by-frame processing](https://github.com/PCudrano/road_line_detection/assets/20643285/6b81c537-e6aa-48ce-baea-99451eb478c8)
+
 
 ### Line points accumulation
 
@@ -22,7 +23,7 @@ This CSV can then be post-processed visualize the line markings detected over th
 1. `python main_store_frames_to_csv.py` --> process the data stream and store the detections in a CSV file <br>
 2. `python main_plot_all_from_csv.py` --> load the CSV file and visualize the accumulated point map
 
-![Line points accumulation](https://github.com/PCudrano/road_line_detection/assets/20643285/e19ea2be-e372-421b-9a61-e6150c18ad64)
+![Line points accumulation](https://github.com/PCudrano/road_line_detection/assets/20643285/9db4ba88-9782-4df6-bc70-52f15eca4c61)
 
 ### Repo structure
 
