@@ -137,6 +137,7 @@ class ImageInputManager(InputManager):
         if self.to_frame < 0:
             self.to_frame = len(self.frames_names_timestamps)
             logging.info("VideoInputManager: no end frame specified, using end of video")
+        self.to_timestamp = self.frames_names_timestamps[self.to_frame-1]
 
     def next_frame(self):
         frames_name = self.frames_names[self.frame_i]
